@@ -1,73 +1,122 @@
-# React + TypeScript + Vite
+# Lineup Manager
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web application built with React, TypeScript, Vite, and Supabase for user authentication and lineup management.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend**: React 19 + TypeScript
+- **Build Tool**: Vite 7
+- **Authentication**: Supabase
+- **Routing**: React Router v7
+- **Styling**: CSS
 
-## React Compiler
+## Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- User authentication (sign up, sign in, sign out)
+- Protected routes for authenticated users
+- Session management with Supabase
+- Modern React with TypeScript
+- Fast development with Vite HMR
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (v18 or higher)
+- A Supabase account and project
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Setup
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. **Clone the repository** (if not already done)
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up Supabase**
+   - Go to [Supabase](https://app.supabase.com)
+   - Create a new project or use an existing one
+   - Go to Project Settings > API
+   - Copy your project URL and anon key
+
+4. **Configure environment variables**
+   - Open the `.env` file in the root directory
+   - Replace the placeholder values with your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your-project-url
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   ```
+
+5. **Enable Email Auth in Supabase** (if not already enabled)
+   - Go to Authentication > Providers in your Supabase dashboard
+   - Ensure Email provider is enabled
+   - Configure email templates if needed
+
+6. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+7. **Open your browser**
+   - Navigate to `http://localhost:5173`
+   - You should see the login/signup page
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Auth.tsx              # Login/Signup component
+│   ├── Auth.css
+│   └── ProtectedRoute.tsx    # Route wrapper for authentication
+├── contexts/
+│   └── AuthContext.tsx       # Authentication context and provider
+├── lib/
+│   └── supabase.ts          # Supabase client configuration
+├── pages/
+│   ├── Dashboard.tsx         # Protected dashboard page
+│   └── Dashboard.css
+├── App.tsx                   # Main app with routing
+└── main.tsx                  # App entry point
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Available Scripts
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Authentication Flow
+
+1. User visits the app and sees the Auth page (login/signup)
+2. User can sign up with email and password
+3. Supabase sends a confirmation email (check your spam folder)
+4. After email confirmation, user can sign in
+5. Authenticated users are redirected to the Dashboard
+6. Protected routes automatically redirect unauthenticated users to the login page
+
+## Next Steps
+
+Now that authentication is set up, you can:
+
+1. **Create database tables** in Supabase for your lineup data
+2. **Add RLS (Row Level Security) policies** to secure your data
+3. **Build lineup management features** in new components/pages
+4. **Add more routes** for different features
+5. **Implement real-time features** using Supabase subscriptions
+6. **Add profile management** and user settings
+
+## Troubleshooting
+
+- **Environment variables not loading**: Make sure your variables start with `VITE_` prefix and restart the dev server
+- **Email confirmation not received**: Check spam folder or configure SMTP settings in Supabase
+- **Authentication errors**: Verify your Supabase URL and anon key are correct in `.env`
+
+## Resources
+
+- [Vite Documentation](https://vite.dev)
+- [React Documentation](https://react.dev)
+- [Supabase Documentation](https://supabase.com/docs)
+- [React Router Documentation](https://reactrouter.com)
