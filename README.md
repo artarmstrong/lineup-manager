@@ -8,12 +8,13 @@ A web application built with React, TypeScript, Vite, and Supabase for user auth
 - **Build Tool**: Vite 7
 - **Authentication**: Supabase
 - **Routing**: React Router v7
-- **Styling**: CSS
+- **Styling**: Tailwind CSS v4
 
 ## Features
 
 - User authentication (sign up, sign in, sign out)
 - Protected routes for authenticated users
+- User profiles with avatar uploads
 - Session management with Supabase
 - Modern React with TypeScript
 - Fast development with Vite HMR
@@ -48,35 +49,101 @@ A web application built with React, TypeScript, Vite, and Supabase for user auth
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
 
-5. **Enable Email Auth in Supabase** (if not already enabled)
+5. **Set up the database tables and storage** (see Database Setup section below)
+
+6. **Enable Email Auth in Supabase** (if not already enabled)
    - Go to Authentication > Providers in your Supabase dashboard
    - Ensure Email provider is enabled
    - Configure email templates if needed
 
-6. **Run the development server**
+7. **Run the development server**
    ```bash
    npm run dev
    ```
 
-7. **Open your browser**
+8. **Open your browser**
    - Navigate to `http://localhost:5173`
-   - You should see the login/signup page
+   - You should see the home page
+
+## Database Setup
+
+Before using the app, you need to set up the database tables and storage in Supabase.
+
+### 1. Create the Profiles Table
+
+Go to your Supabase project's SQL Editor and run the following:
+
+```sql
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  full_name TEXT,
+  avatar_url TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own profile"
+  ON profiles FOR SELECT
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile"
+  ON profiles FOR UPDATE
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile"
+  ON profiles FOR INSERT
+  WITH CHECK (auth.uid() = id);
+```
+
+### 2. Create the Avatars Storage Bucket
+
+1. Go to **Storage** in your Supabase dashboard
+2. Click **"New Bucket"**
+3. Name it **"avatars"**
+4. Make it **public**
+5. Create the bucket
+
+### 3. Set up Storage Policies
+
+In the SQL Editor, run the following policies for the avatars bucket:
+
+```sql
+-- Policy: Users can upload their own avatar
+CREATE POLICY "Users can upload own avatar"
+ON storage.objects FOR INSERT
+TO authenticated
+WITH CHECK (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Policy: Anyone can view avatars
+CREATE POLICY "Avatars are publicly accessible"
+ON storage.objects FOR SELECT
+TO public
+USING (bucket_id = 'avatars');
+
+-- Policy: Users can update their own avatar
+CREATE POLICY "Users can update own avatar"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+```
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── Auth.tsx              # Login/Signup component
-│   ├── Auth.css
 │   └── ProtectedRoute.tsx    # Route wrapper for authentication
 ├── contexts/
 │   └── AuthContext.tsx       # Authentication context and provider
 ├── lib/
-│   └── supabase.ts          # Supabase client configuration
+│   └── supabase.ts           # Supabase client configuration
 ├── pages/
+│   ├── Home.tsx              # Landing page
+│   ├── Login.tsx             # Login page
+│   ├── Signup.tsx            # Signup page
 │   ├── Dashboard.tsx         # Protected dashboard page
-│   └── Dashboard.css
+│   └── Profile.tsx           # User profile page
 ├── App.tsx                   # Main app with routing
 └── main.tsx                  # App entry point
 ```
@@ -90,23 +157,29 @@ src/
 
 ## Authentication Flow
 
-1. User visits the app and sees the Auth page (login/signup)
+1. User visits the app and sees the Home page
 2. User can sign up with email and password
 3. Supabase sends a confirmation email (check your spam folder)
 4. After email confirmation, user can sign in
-5. Authenticated users are redirected to the Dashboard
+5. Authenticated users can access the Dashboard and Profile pages
 6. Protected routes automatically redirect unauthenticated users to the login page
+
+## User Profile Features
+
+- **Full Name**: Users can update their display name
+- **Avatar Upload**: Users can upload profile pictures directly to Supabase Storage
+- **Avatar Preview**: Shows current avatar or default initial placeholder
+- **Automatic Storage**: Images are securely stored with proper access controls
 
 ## Next Steps
 
-Now that authentication is set up, you can:
+Now that authentication and profiles are set up, you can:
 
-1. **Create database tables** in Supabase for your lineup data
-2. **Add RLS (Row Level Security) policies** to secure your data
-3. **Build lineup management features** in new components/pages
-4. **Add more routes** for different features
-5. **Implement real-time features** using Supabase subscriptions
-6. **Add profile management** and user settings
+1. **Build lineup management features** in new components/pages
+2. **Add more database tables** for your lineup data
+3. **Add more routes** for different features
+4. **Implement real-time features** using Supabase subscriptions
+5. **Extend the profile** with additional fields as needed
 
 ## Troubleshooting
 

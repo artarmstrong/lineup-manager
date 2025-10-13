@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
+import UserAvatar from '../components/UserAvatar'
 
 export default function Home() {
   const { user, signOut } = useAuth()
@@ -13,13 +14,26 @@ export default function Home() {
       {user && (
         <header className="bg-white/10 backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h2 className="text-white font-semibold">Welcome, {user.email}</h2>
-            <div className="flex gap-3">
-              <Link
-                to="/dashboard"
-                className="px-4 py-2 bg-white text-indigo-600 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors"
-              >
-                Go to Dashboard
+            <div className="flex items-center gap-6">
+              <h2 className="text-white font-semibold">Welcome, {user.email}</h2>
+              <nav className="flex gap-4">
+                <Link
+                  to="/dashboard"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  to="/profile"
+                  className="text-white/90 hover:text-white font-medium transition-colors"
+                >
+                  Profile
+                </Link>
+              </nav>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link to="/profile">
+                <UserAvatar size="md" />
               </Link>
               <button
                 onClick={handleSignOut}
