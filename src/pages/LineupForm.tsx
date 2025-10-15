@@ -1,23 +1,19 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserAvatar from '../components/UserAvatar';
-import LineupRotation from '../components/LineupRotation';
 import { supabase } from '../lib/supabase';
-import type { Sport, Position, Player, LineupData, Lineup, RotationSettings, InningAssignment } from '../types/lineup.types';
-import { ALL_POSITIONS, POSITION_NAMES, BATTING_ORDER_NUMBERS } from '../types/lineup.types';
+import type { Sport, Player, LineupData, RotationSettings } from '../types/lineup.types';
+import { POSITION_NAMES } from '../types/lineup.types';
 import { generateRotation, getAvailablePositions } from '../utils/rotationGenerator';
 
 export default function LineupForm() {
-  const { id } = useParams<{ id: string }>();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const isEditing = id !== 'new';
 
   const [name, setName] = useState('');
   const [sport, setSport] = useState<Sport>('baseball');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,57 +21,10 @@ export default function LineupForm() {
   const [numberOfInnings, setNumberOfInnings] = useState<number>(6);
   const [usePitcher, setUsePitcher] = useState<boolean>(true);
   const [useCatcher, setUseCatcher] = useState<boolean>(true);
-  const [rotation, setRotation] = useState<InningAssignment[][]>([]);
-  const [showRotation, setShowRotation] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
-  };
-
-  useEffect(() => {
-    if (isEditing) {
-      fetchLineup();
-    }
-  }, [id]);
-
-  const fetchLineup = async () => {
-    if (!user || !id || id === 'new') return;
-
-    try {
-      setLoading(true);
-      const { data, error: fetchError } = await supabase
-        .from('lineups')
-        .select('*')
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const lineup = data as Lineup;
-      setName(lineup.name);
-      setSport(lineup.data.sport);
-      setPlayers(lineup.data.players);
-
-      // Load rotation settings if they exist
-      if (lineup.data.rotationSettings) {
-        setNumberOfInnings(lineup.data.rotationSettings.numberOfInnings);
-        setUsePitcher(lineup.data.rotationSettings.usePitcher);
-        setUseCatcher(lineup.data.rotationSettings.useCatcher);
-      }
-
-      // Load rotation if it exists
-      if (lineup.data.rotation && lineup.data.rotation.length > 0) {
-        setRotation(lineup.data.rotation);
-        setShowRotation(true);
-      }
-    } catch (err) {
-      console.error('Error fetching lineup:', err);
-      setError('Failed to load lineup');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const addPlayer = () => {
@@ -120,30 +69,6 @@ export default function LineupForm() {
     setPlayers(newPlayers);
   };
 
-  const handleGenerateRotation = () => {
-    if (players.length === 0) {
-      setError('Please add players before generating rotation');
-      return;
-    }
-
-    const hasEmptyNames = players.some(p => !p.name.trim());
-    if (hasEmptyNames) {
-      setError('All players must have a name before generating rotation');
-      return;
-    }
-
-    const settings: RotationSettings = {
-      numberOfInnings,
-      usePitcher,
-      useCatcher,
-    };
-
-    const generatedRotation = generateRotation(players, settings);
-    setRotation(generatedRotation);
-    setShowRotation(true);
-    setError(null);
-  };
-
   // Get available positions based on current settings
   const availablePositions = getAvailablePositions({
     numberOfInnings,
@@ -182,41 +107,32 @@ export default function LineupForm() {
         useCatcher,
       };
 
+      // Auto-generate rotation before saving
+      const generatedRotation = generateRotation(players, rotationSettings);
+
       const lineupData: LineupData = {
         sport,
         players,
         rotationSettings,
-        rotation: rotation.length > 0 ? rotation : undefined,
+        rotation: generatedRotation,
       };
 
-      if (isEditing) {
-        // Update existing lineup
-        const { error: updateError } = await supabase
-          .from('lineups')
-          .update({
-            name,
-            data: lineupData,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', id)
-          .eq('user_id', user.id);
+      // Create new lineup
+      const { data: newLineup, error: insertError } = await supabase
+        .from('lineups')
+        .insert({
+          name,
+          data: lineupData,
+          user_id: user.id,
+          created_by: user.id,
+        })
+        .select()
+        .single();
 
-        if (updateError) throw updateError;
-      } else {
-        // Create new lineup
-        const { error: insertError } = await supabase
-          .from('lineups')
-          .insert({
-            name,
-            data: lineupData,
-            user_id: user.id,
-            created_by: user.id,
-          });
+      if (insertError) throw insertError;
 
-        if (insertError) throw insertError;
-      }
-
-      navigate('/lineups');
+      // Navigate to the newly created lineup view
+      navigate(`/lineups/${newLineup.id}/view`);
     } catch (err) {
       console.error('Error saving lineup:', err);
       setError('Failed to save lineup');
@@ -224,17 +140,6 @@ export default function LineupForm() {
       setSaving(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -286,7 +191,7 @@ export default function LineupForm() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {isEditing ? 'Edit Lineup' : 'Create New Lineup'}
+            Create New Lineup
           </h2>
 
           {error && (
@@ -482,16 +387,8 @@ export default function LineupForm() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={handleGenerateRotation}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
-                  >
-                    Generate Position Rotation
-                  </button>
-
                   <p className="text-xs text-gray-500 mt-2">
-                    After adding all players, generate a position rotation to distribute players evenly across all positions for each inning.
+                    Position rotation will be automatically generated when you create the lineup. Players will be distributed evenly across all positions for each inning.
                   </p>
                 </div>
               )}
@@ -503,7 +400,7 @@ export default function LineupForm() {
                   disabled={saving}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving ? 'Saving...' : isEditing ? 'Update Lineup' : 'Create Lineup'}
+                  {saving ? 'Saving...' : 'Create Lineup'}
                 </button>
                 <Link
                   to="/lineups"
@@ -514,11 +411,6 @@ export default function LineupForm() {
               </div>
             </div>
           </form>
-
-          {/* Display Rotation if Generated */}
-          {showRotation && rotation.length > 0 && (
-            <LineupRotation rotation={rotation} />
-          )}
         </div>
       </main>
     </div>

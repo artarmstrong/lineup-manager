@@ -158,6 +158,16 @@ export default function Lineups() {
                   <p className="text-sm text-gray-600">
                     {lineup.data.players.length} player{lineup.data.players.length !== 1 ? 's' : ''}
                   </p>
+                  {lineup.data.rotationSettings && (
+                    <p className="text-sm text-gray-600">
+                      {lineup.data.rotationSettings.numberOfInnings} innings
+                    </p>
+                  )}
+                  {lineup.data.rotation && lineup.data.rotation.length > 0 && (
+                    <p className="text-xs text-green-600 font-medium mt-1">
+                      ✓ Rotation generated
+                    </p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     Updated {new Date(lineup.updated_at).toLocaleDateString()}
                   </p>
@@ -165,10 +175,10 @@ export default function Lineups() {
 
                 <div className="flex gap-2">
                   <Link
-                    to={`/lineups/${lineup.id}`}
+                    to={`/lineups/${lineup.id}/view`}
                     className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors text-center"
                   >
-                    View/Edit
+                    View
                   </Link>
                   <button
                     onClick={() => handleDelete(lineup.id)}

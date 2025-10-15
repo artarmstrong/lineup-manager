@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
 import Lineups from './pages/Lineups'
 import LineupForm from './pages/LineupForm'
+import LineupView from './pages/LineupView'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -42,10 +43,18 @@ function App() {
             }
           />
           <Route
-            path="/lineups/:id"
+            path="/lineups/new"
             element={
               <ProtectedRoute>
                 <LineupForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lineups/:id/view"
+            element={
+              <ProtectedRoute>
+                <LineupView />
               </ProtectedRoute>
             }
           />
