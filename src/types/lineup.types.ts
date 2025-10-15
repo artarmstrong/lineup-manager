@@ -1,16 +1,16 @@
 export type Sport = 'baseball' | 'softball';
 
 export type Position =
-  | 'P'   // Pitcher
-  | 'C'   // Catcher
-  | '1B'  // First Base
-  | '2B'  // Second Base
-  | '3B'  // Third Base
-  | 'SS'  // Shortstop
-  | 'LF'  // Left Field
-  | 'CF'  // Center Field
-  | 'RF'  // Right Field
-  | 'DH'; // Designated Hitter
+  | 'P'     // Pitcher
+  | 'C'     // Catcher
+  | '1B'    // First Base
+  | '2B'    // Second Base
+  | '3B'    // Third Base
+  | 'SS'    // Shortstop
+  | 'LF'    // Left Field
+  | 'CF'    // Center Field
+  | 'RF'    // Right Field
+  | 'BENCH'; // Bench
 
 export interface Player {
   id: string;
@@ -61,12 +61,12 @@ export const POSITION_NAMES: Record<Position, string> = {
   'LF': 'Left Field',
   'CF': 'Center Field',
   'RF': 'Right Field',
-  'DH': 'Designated Hitter',
+  'BENCH': 'Bench',
 };
 
 // All available positions
 export const ALL_POSITIONS: Position[] = [
-  'P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'DH'
+  'P', 'C', '1B', '2B', '3B', 'SS', 'LF', 'CF', 'RF', 'BENCH'
 ];
 
 // Batting order numbers
