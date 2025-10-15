@@ -154,6 +154,9 @@ src/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
 - `npm run lint` - Run ESLint
+- `npm run test` - Run tests in watch mode
+- `npm run test:ui` - Run tests with UI interface
+- `npm run test:coverage` - Run tests with coverage report
 
 ## Authentication Flow
 
@@ -171,6 +174,39 @@ src/
 - **Avatar Preview**: Shows current avatar or default initial placeholder
 - **Automatic Storage**: Images are securely stored with proper access controls
 
+## Testing
+
+This project uses Vitest for testing. Tests are located alongside their source files with the `.test.ts` or `.test.tsx` extension.
+
+### Running Tests
+
+```bash
+# Run tests in watch mode (recommended during development)
+npm run test
+
+# Run tests with UI interface
+npm run test:ui
+
+# Run tests with coverage report
+npm run test:coverage
+```
+
+### Writing Tests
+
+Example test files are included:
+- [src/components/UserAvatar.test.tsx](src/components/UserAvatar.test.tsx) - Component testing example
+- [src/test/example.test.ts](src/test/example.test.ts) - Utility function testing example
+
+To add a new test, create a file with `.test.ts` or `.test.tsx` extension next to the file you want to test.
+
+### Test Setup
+
+- **Framework**: Vitest
+- **React Testing**: @testing-library/react
+- **DOM Matchers**: @testing-library/jest-dom
+- **Environment**: jsdom
+- **Setup File**: [src/test/setup.ts](src/test/setup.ts)
+
 ## Next Steps
 
 Now that authentication and profiles are set up, you can:
@@ -180,6 +216,7 @@ Now that authentication and profiles are set up, you can:
 3. **Add more routes** for different features
 4. **Implement real-time features** using Supabase subscriptions
 5. **Extend the profile** with additional fields as needed
+6. **Write tests** for your new features
 
 ## Troubleshooting
 
@@ -193,3 +230,5 @@ Now that authentication and profiles are set up, you can:
 - [React Documentation](https://react.dev)
 - [Supabase Documentation](https://supabase.com/docs)
 - [React Router Documentation](https://reactrouter.com)
+- [Vitest Documentation](https://vitest.dev)
+- [React Testing Library](https://testing-library.com/react)
