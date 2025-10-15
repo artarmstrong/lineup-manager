@@ -25,6 +25,12 @@ export default function Dashboard() {
                 Dashboard
               </Link>
               <Link
+                to="/lineups"
+                className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              >
+                Lineups
+              </Link>
+              <Link
                 to="/profile"
                 className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
               >

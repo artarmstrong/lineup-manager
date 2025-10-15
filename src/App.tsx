@@ -5,6 +5,8 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Dashboard from './pages/Dashboard'
 import Profile from './pages/Profile'
+import Lineups from './pages/Lineups'
+import LineupForm from './pages/LineupForm'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
@@ -28,6 +30,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lineups"
+            element={
+              <ProtectedRoute>
+                <Lineups />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/lineups/:id"
+            element={
+              <ProtectedRoute>
+                <LineupForm />
               </ProtectedRoute>
             }
           />
