@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserAvatar from '../components/UserAvatar';
+import LineupRotation from '../components/LineupRotation';
 import { supabase } from '../lib/supabase';
-import type { Sport, Position, Player, LineupData, Lineup } from '../types/lineup.types';
+import type { Sport, Position, Player, LineupData, Lineup, RotationSettings, InningAssignment } from '../types/lineup.types';
 import { ALL_POSITIONS, POSITION_NAMES, BATTING_ORDER_NUMBERS } from '../types/lineup.types';
+import { generateRotation, getAvailablePositions } from '../utils/rotationGenerator';
 
 export default function LineupForm() {
   const { id } = useParams<{ id: string }>();
@@ -18,6 +20,13 @@ export default function LineupForm() {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Rotation settings
+  const [numberOfInnings, setNumberOfInnings] = useState<number>(6);
+  const [usePitcher, setUsePitcher] = useState<boolean>(true);
+  const [useCatcher, setUseCatcher] = useState<boolean>(true);
+  const [rotation, setRotation] = useState<InningAssignment[][]>([]);
+  const [showRotation, setShowRotation] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -48,6 +57,19 @@ export default function LineupForm() {
       setName(lineup.name);
       setSport(lineup.data.sport);
       setPlayers(lineup.data.players);
+
+      // Load rotation settings if they exist
+      if (lineup.data.rotationSettings) {
+        setNumberOfInnings(lineup.data.rotationSettings.numberOfInnings);
+        setUsePitcher(lineup.data.rotationSettings.usePitcher);
+        setUseCatcher(lineup.data.rotationSettings.useCatcher);
+      }
+
+      // Load rotation if it exists
+      if (lineup.data.rotation && lineup.data.rotation.length > 0) {
+        setRotation(lineup.data.rotation);
+        setShowRotation(true);
+      }
     } catch (err) {
       console.error('Error fetching lineup:', err);
       setError('Failed to load lineup');
@@ -98,6 +120,37 @@ export default function LineupForm() {
     setPlayers(newPlayers);
   };
 
+  const handleGenerateRotation = () => {
+    if (players.length === 0) {
+      setError('Please add players before generating rotation');
+      return;
+    }
+
+    const hasEmptyNames = players.some(p => !p.name.trim());
+    if (hasEmptyNames) {
+      setError('All players must have a name before generating rotation');
+      return;
+    }
+
+    const settings: RotationSettings = {
+      numberOfInnings,
+      usePitcher,
+      useCatcher,
+    };
+
+    const generatedRotation = generateRotation(players, settings);
+    setRotation(generatedRotation);
+    setShowRotation(true);
+    setError(null);
+  };
+
+  // Get available positions based on current settings
+  const availablePositions = getAvailablePositions({
+    numberOfInnings,
+    usePitcher,
+    useCatcher,
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -123,9 +176,17 @@ export default function LineupForm() {
       setSaving(true);
       setError(null);
 
+      const rotationSettings: RotationSettings = {
+        numberOfInnings,
+        usePitcher,
+        useCatcher,
+      };
+
       const lineupData: LineupData = {
         sport,
         players,
+        rotationSettings,
+        rotation: rotation.length > 0 ? rotation : undefined,
       };
 
       if (isEditing) {
@@ -340,7 +401,7 @@ export default function LineupForm() {
                               onChange={(e) => updatePlayer(player.id, 'position', e.target.value)}
                               className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
                             >
-                              {ALL_POSITIONS.map(pos => (
+                              {availablePositions.map(pos => (
                                 <option key={pos} value={pos}>
                                   {pos} - {POSITION_NAMES[pos]}
                                 </option>
@@ -373,6 +434,68 @@ export default function LineupForm() {
                 )}
               </div>
 
+              {/* Rotation Settings */}
+              {players.length > 0 && (
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Position Rotation Settings</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                      <label htmlFor="innings" className="block text-sm font-medium text-gray-700 mb-1">
+                        Number of Innings
+                      </label>
+                      <input
+                        type="number"
+                        id="innings"
+                        min="1"
+                        max="12"
+                        value={numberOfInnings}
+                        onChange={(e) => setNumberOfInnings(parseInt(e.target.value) || 6)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="usePitcher"
+                        checked={usePitcher}
+                        onChange={(e) => setUsePitcher(e.target.checked)}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="usePitcher" className="ml-2 block text-sm text-gray-700">
+                        Use Pitcher Position
+                      </label>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="useCatcher"
+                        checked={useCatcher}
+                        onChange={(e) => setUseCatcher(e.target.checked)}
+                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="useCatcher" className="ml-2 block text-sm text-gray-700">
+                        Use Catcher Position
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGenerateRotation}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-md font-medium hover:bg-green-700 transition-colors"
+                  >
+                    Generate Position Rotation
+                  </button>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    After adding all players, generate a position rotation to distribute players evenly across all positions for each inning.
+                  </p>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="flex gap-3 pt-4">
                 <button
@@ -391,6 +514,11 @@ export default function LineupForm() {
               </div>
             </div>
           </form>
+
+          {/* Display Rotation if Generated */}
+          {showRotation && rotation.length > 0 && (
+            <LineupRotation rotation={rotation} />
+          )}
         </div>
       </main>
     </div>

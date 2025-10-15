@@ -20,9 +20,25 @@ export interface Player {
   jerseyNumber?: string;
 }
 
+export interface RotationSettings {
+  numberOfInnings: number;
+  usePitcher: boolean;
+  useCatcher: boolean;
+}
+
+export interface InningAssignment {
+  inning: number;
+  playerId: string;
+  playerName: string;
+  position: Position;
+  battingOrder: number;
+}
+
 export interface LineupData {
   sport: Sport;
   players: Player[];
+  rotationSettings?: RotationSettings;
+  rotation?: InningAssignment[][]; // Array of innings, each inning is array of player assignments
 }
 
 export interface Lineup {
