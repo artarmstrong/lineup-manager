@@ -32,6 +32,7 @@ export interface InningAssignment {
   playerName: string;
   position: Position;
   battingOrder: number;
+  jerseyNumber?: string;
 }
 
 export interface LineupData {

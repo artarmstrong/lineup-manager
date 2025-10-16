@@ -31,7 +31,7 @@ export default function LineupForm() {
     const newPlayer: Player = {
       id: crypto.randomUUID(),
       name: '',
-      position: 'P',
+      position: 'BENCH',
       battingOrder: players.length + 1,
       jerseyNumber: '',
     };

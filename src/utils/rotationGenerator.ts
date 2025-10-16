@@ -92,6 +92,7 @@ export function generateRotation(
           playerName: bestPlayer.name,
           position,
           battingOrder: bestPlayer.battingOrder,
+          jerseyNumber: bestPlayer.jerseyNumber,
         });
 
         assignedPlayers.add(bestPlayer.id);
@@ -113,6 +114,7 @@ export function generateRotation(
           playerName: player.name,
           position: 'BENCH',
           battingOrder: player.battingOrder,
+          jerseyNumber: player.jerseyNumber,
         });
 
         // Update stats

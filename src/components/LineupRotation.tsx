@@ -23,17 +23,18 @@ export default function LineupRotation({ rotation }: LineupRotationProps) {
   const positions = positionOrder.filter(pos => allPositions.has(pos));
 
   // Build a map: position -> inning -> player info
-  const positionInningMap = new Map<Position, Map<number, { battingOrder: number; playerName: string }>>();
+  const positionInningMap = new Map<Position, Map<number, { battingOrder: number; playerName: string; jerseyNumber?: string }>>();
 
   positions.forEach(position => {
-    const inningMap = new Map<number, { battingOrder: number; playerName: string }>();
+    const inningMap = new Map<number, { battingOrder: number; playerName: string; jerseyNumber?: string }>();
 
     rotation.forEach((inningAssignments, inningIndex) => {
       const assignment = inningAssignments.find(a => a.position === position);
       if (assignment) {
         inningMap.set(inningIndex + 1, {
           battingOrder: assignment.battingOrder,
-          playerName: assignment.playerName
+          playerName: assignment.playerName,
+          jerseyNumber: assignment.jerseyNumber
         });
       }
     });
@@ -88,7 +89,9 @@ export default function LineupRotation({ rotation }: LineupRotationProps) {
                         className="px-4 py-3 text-center text-sm text-gray-900 border-r border-gray-300"
                       >
                         {playerInfo ? (
-                          <span className="font-medium">{playerInfo.playerName}</span>
+                          <span className="font-medium">
+                            {playerInfo.jerseyNumber ? `#${playerInfo.jerseyNumber} - ` : ''}{playerInfo.playerName}
+                          </span>
                         ) : (
                           <span className="text-gray-400">-</span>
                         )}
