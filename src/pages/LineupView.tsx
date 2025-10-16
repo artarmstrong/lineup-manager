@@ -89,8 +89,155 @@ export default function LineupView() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+    <>
+      <style>{`
+        @media print {
+          @page {
+            margin: 0.3in;
+            size: landscape;
+          }
+
+          * {
+            overflow: visible !important;
+          }
+
+          body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+          }
+
+          .print\\:hidden {
+            display: none !important;
+          }
+
+          /* Force single page */
+          html, body {
+            height: 100%;
+            overflow: hidden;
+          }
+
+          main {
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+
+          /* Compact table styles for print */
+          table {
+            font-size: 7pt !important;
+            border-collapse: collapse;
+            width: 100%;
+            page-break-inside: avoid;
+          }
+
+          th, td {
+            padding: 2px 4px !important;
+            border: 1px solid #000 !important;
+            font-size: 7pt !important;
+          }
+
+          th {
+            background-color: #f3f4f6 !important;
+            font-weight: bold;
+            font-size: 7pt !important;
+          }
+
+          /* Hide shadows and rounded corners */
+          .shadow {
+            box-shadow: none !important;
+          }
+
+          .rounded-lg {
+            border-radius: 0 !important;
+          }
+
+          .bg-white {
+            background: white !important;
+          }
+
+          /* Compact spacing */
+          .print-compact {
+            margin-bottom: 0.25rem !important;
+          }
+
+          .mb-8 {
+            margin-bottom: 0.25rem !important;
+          }
+
+          .mb-6 {
+            margin-bottom: 0.25rem !important;
+          }
+
+          .mb-4 {
+            margin-bottom: 0.15rem !important;
+          }
+
+          .p-6 {
+            padding: 0.25rem !important;
+          }
+
+          h2 {
+            font-size: 11pt !important;
+            margin-bottom: 3px !important;
+            margin-top: 0 !important;
+          }
+
+          h3 {
+            font-size: 9pt !important;
+            margin-bottom: 2px !important;
+            margin-top: 0 !important;
+          }
+
+          .text-sm, .text-xs {
+            font-size: 6pt !important;
+          }
+
+          /* Make batting order table more compact */
+          .batting-order-table {
+            width: auto !important;
+            max-width: 35% !important;
+            float: none !important;
+            margin-bottom: 0.5rem !important;
+          }
+
+          .batting-order-table table {
+            width: auto !important;
+          }
+
+          .rotation-section {
+            width: 100% !important;
+            float: none !important;
+            clear: both !important;
+          }
+
+          .rotation-table-container {
+            overflow: visible !important;
+          }
+
+          /* Fix sticky position border issue in print */
+          .sticky {
+            position: static !important;
+          }
+
+          /* Ensure all borders show properly */
+          td.border, th.border {
+            border: 1px solid #000 !important;
+          }
+
+          /* Clear floats after tables */
+          .clear-float::after {
+            content: "";
+            display: table;
+            clear: both;
+          }
+
+          /* Ensure everything fits on one page */
+          .overflow-x-auto {
+            overflow: visible !important;
+          }
+        }
+      `}</style>
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-6">
             <h1 className="text-2xl font-bold text-gray-900">Lineup Manager</h1>
@@ -130,16 +277,24 @@ export default function LineupView() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex justify-between items-center print:hidden">
           <Link to="/lineups" className="text-indigo-600 hover:text-indigo-700 font-medium">
             ← Back to Lineups
           </Link>
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
-          >
-            Delete Lineup
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 transition-colors"
+            >
+              Print Lineup
+            </button>
+            <button
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-600 text-white rounded-md font-medium hover:bg-red-700 transition-colors"
+            >
+              Delete Lineup
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
@@ -154,29 +309,30 @@ export default function LineupView() {
                 <>
                   <span>•</span>
                   <span>{lineup.data.rotationSettings.numberOfInnings} innings</span>
+                  <span>•</span>
+                  <span>Pitcher: {lineup.data.rotationSettings.usePitcher ? 'Yes' : 'No'}</span>
+                  <span>•</span>
+                  <span>Catcher: {lineup.data.rotationSettings.useCatcher ? 'Yes' : 'No'}</span>
                 </>
               )}
             </div>
           </div>
 
           {/* Players List */}
-          <div className="mb-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">Players & Batting Order</h3>
+          <div className="mb-8 print-compact batting-order-table">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">Batting Order</h3>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-300">
+              <table className="min-w-full divide-y divide-gray-300 border border-gray-300">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Batting Order
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                      #
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Player Name
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                      Player
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Initial Position
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                      Jersey #
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border border-gray-300">
+                      Jersey
                     </th>
                   </tr>
                 </thead>
@@ -184,19 +340,14 @@ export default function LineupView() {
                   {lineup.data.players
                     .sort((a, b) => a.battingOrder - b.battingOrder)
                     .map((player) => (
-                      <tr key={player.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr key={player.id}>
+                        <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900 border border-gray-300">
                           {player.battingOrder}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-900 border border-gray-300">
                           {player.name}
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                            {player.position} - {POSITION_NAMES[player.position]}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+                        <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 border border-gray-300">
                           {player.jerseyNumber || '-'}
                         </td>
                       </tr>
@@ -206,38 +357,21 @@ export default function LineupView() {
             </div>
           </div>
 
-          {/* Rotation Settings Summary */}
-          {lineup.data.rotationSettings && (
-            <div className="mb-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">Rotation Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm text-blue-800">
-                <div>
-                  <span className="font-medium">Innings:</span> {lineup.data.rotationSettings.numberOfInnings}
-                </div>
-                <div>
-                  <span className="font-medium">Pitcher Position:</span>{' '}
-                  {lineup.data.rotationSettings.usePitcher ? 'Yes' : 'No'}
-                </div>
-                <div>
-                  <span className="font-medium">Catcher Position:</span>{' '}
-                  {lineup.data.rotationSettings.useCatcher ? 'Yes' : 'No'}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Display Rotation if Generated */}
-          {lineup.data.rotation && lineup.data.rotation.length > 0 && (
-            <LineupRotation rotation={lineup.data.rotation} />
-          )}
+          <div className="clear-float">
+            {lineup.data.rotation && lineup.data.rotation.length > 0 && (
+              <LineupRotation rotation={lineup.data.rotation} />
+            )}
 
-          {!lineup.data.rotation && (
-            <div className="text-center py-8 text-gray-500">
-              <p>No position rotation has been generated for this lineup.</p>
-            </div>
-          )}
+            {!lineup.data.rotation && (
+              <div className="text-center py-8 text-gray-500 print:hidden">
+                <p>No position rotation has been generated for this lineup.</p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

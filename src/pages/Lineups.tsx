@@ -143,12 +143,12 @@ export default function Lineups() {
                 key={lineup.id}
                 className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-6"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-1">
                   <div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-1">
                       {lineup.name}
                     </h3>
-                    <p className="text-sm text-gray-500 capitalize">
+                    <p className="text-md text-gray-500 capitalize">
                       {lineup.data.sport}
                     </p>
                   </div>
@@ -163,22 +163,17 @@ export default function Lineups() {
                       {lineup.data.rotationSettings.numberOfInnings} innings
                     </p>
                   )}
-                  {lineup.data.rotation && lineup.data.rotation.length > 0 && (
-                    <p className="text-xs text-green-600 font-medium mt-1">
-                      ✓ Rotation generated
-                    </p>
-                  )}
                   <p className="text-xs text-gray-500 mt-1">
-                    Updated {new Date(lineup.updated_at).toLocaleDateString()}
+                    Created {new Date(lineup.updated_at).toLocaleDateString()}
                   </p>
                 </div>
 
                 <div className="flex gap-2">
                   <Link
                     to={`/lineups/${lineup.id}/view`}
-                    className="flex-1 px-3 py-2 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors text-center"
+                    className="px-3 py-2 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors text-center"
                   >
-                    View
+                    View Lineup
                   </Link>
                   <button
                     onClick={() => handleDelete(lineup.id)}
