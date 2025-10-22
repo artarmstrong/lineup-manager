@@ -18,6 +18,8 @@ export interface Player {
   position: Position;
   battingOrder: number; // 1-9
   jerseyNumber?: string;
+  cannotPitch?: boolean; // Player cannot play pitcher position
+  cannotCatch?: boolean; // Player cannot play catcher position
 }
 
 export interface RotationSettings {

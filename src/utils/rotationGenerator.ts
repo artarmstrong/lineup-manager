@@ -69,6 +69,10 @@ export function generateRotation(
       for (const player of players) {
         if (assignedPlayers.has(player.id)) continue;
 
+        // Check position restrictions
+        if (position === 'P' && player.cannotPitch) continue;
+        if (position === 'C' && player.cannotCatch) continue;
+
         const positionCount = playerPositionCount.get(player.id)!.get(position)!;
         const categoryCount = playerCategoryCount.get(player.id)![positionCategory];
 

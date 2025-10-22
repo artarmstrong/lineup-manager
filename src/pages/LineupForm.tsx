@@ -77,7 +77,7 @@ export default function LineupForm() {
     setPlayers(updatedPlayers);
   };
 
-  const updatePlayer = (playerId: string, field: keyof Player, value: string | number) => {
+  const updatePlayer = (playerId: string, field: keyof Player, value: string | number | boolean) => {
     setPlayers(players.map(p =>
       p.id === playerId ? { ...p, [field]: value } : p
     ));
@@ -133,6 +133,23 @@ export default function LineupForm() {
     if (hasEmptyNames) {
       setError('All players must have a name');
       return;
+    }
+
+    // Validate pitcher/catcher restrictions
+    if (usePitcher) {
+      const eligiblePitchers = players.filter(p => !p.cannotPitch);
+      if (eligiblePitchers.length === 0) {
+        setError('You have "Use Pitcher Position" enabled, but all players are marked as "Cannot pitch". At least one player must be able to pitch.');
+        return;
+      }
+    }
+
+    if (useCatcher) {
+      const eligibleCatchers = players.filter(p => !p.cannotCatch);
+      if (eligibleCatchers.length === 0) {
+        setError('You have "Use Catcher Position" enabled, but all players are marked as "Cannot catch". At least one player must be able to catch.');
+        return;
+      }
     }
 
     try {
@@ -329,54 +346,84 @@ export default function LineupForm() {
                           </button>
                         </div>
 
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-2">
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">Batting Order</label>
-                            <input
-                              type="text"
-                              value={player.battingOrder}
-                              readOnly
-                              className="w-full px-2 py-1 border border-gray-300 rounded bg-gray-100 text-sm"
-                            />
+                        <div className="flex-1">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Batting Order</label>
+                              <input
+                                type="text"
+                                value={player.battingOrder}
+                                readOnly
+                                className="w-full px-2 py-1 border border-gray-300 rounded bg-gray-100 text-sm"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Name</label>
+                              <input
+                                type="text"
+                                value={player.name}
+                                onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                placeholder="Player name"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Position</label>
+                              <select
+                                value={player.position}
+                                onChange={(e) => updatePlayer(player.id, 'position', e.target.value)}
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              >
+                                {availablePositions.map(pos => (
+                                  <option key={pos} value={pos}>
+                                    {pos} - {POSITION_NAMES[pos]}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-xs text-gray-600 mb-1">Jersey #</label>
+                              <input
+                                type="text"
+                                value={player.jerseyNumber || ''}
+                                onChange={(e) => updatePlayer(player.id, 'jerseyNumber', e.target.value)}
+                                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                placeholder="Optional"
+                              />
+                            </div>
                           </div>
 
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">Name</label>
-                            <input
-                              type="text"
-                              value={player.name}
-                              onChange={(e) => updatePlayer(player.id, 'name', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              placeholder="Player name"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">Position</label>
-                            <select
-                              value={player.position}
-                              onChange={(e) => updatePlayer(player.id, 'position', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            >
-                              {availablePositions.map(pos => (
-                                <option key={pos} value={pos}>
-                                  {pos} - {POSITION_NAMES[pos]}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-xs text-gray-600 mb-1">Jersey #</label>
-                            <input
-                              type="text"
-                              value={player.jerseyNumber || ''}
-                              onChange={(e) => updatePlayer(player.id, 'jerseyNumber', e.target.value)}
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                              placeholder="Optional"
-                            />
-                          </div>
+                          {/* Position Restrictions */}
+                          {(usePitcher || useCatcher) && (
+                            <div className="flex gap-4 text-xs">
+                              {usePitcher && (
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={player.cannotPitch || false}
+                                    onChange={(e) => updatePlayer(player.id, 'cannotPitch', e.target.checked)}
+                                    className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                  />
+                                  <span className="text-gray-700">Cannot pitch</span>
+                                </label>
+                              )}
+                              {useCatcher && (
+                                <label className="flex items-center gap-1 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={player.cannotCatch || false}
+                                    onChange={(e) => updatePlayer(player.id, 'cannotCatch', e.target.checked)}
+                                    className="h-3 w-3 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                  />
+                                  <span className="text-gray-700">Cannot catch</span>
+                                </label>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <button

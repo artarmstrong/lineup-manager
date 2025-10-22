@@ -5,6 +5,8 @@ import UserAvatar from '../components/UserAvatar';
 import { supabase } from '../lib/supabase';
 import type { Lineup } from '../types/lineup.types';
 
+const MAX_FREE_LINEUPS = 5;
+
 export default function Lineups() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
@@ -118,6 +120,26 @@ export default function Lineups() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
             {error}
+          </div>
+        )}
+
+        {/* Lineup limit notifications */}
+        {!loading && lineups.length === MAX_FREE_LINEUPS && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+            <strong>Limit Reached:</strong> You have reached the maximum of {MAX_FREE_LINEUPS} lineups for the free tier. Please delete a lineup to create a new one.
+          </div>
+        )}
+
+        {!loading && lineups.length === MAX_FREE_LINEUPS - 1 && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-4 py-3 rounded mb-4">
+            <strong>Warning:</strong> You have {lineups.length} of {MAX_FREE_LINEUPS} lineups. You can only create 1 more lineup on the free tier.
+          </div>
+        )}
+
+        {/* Lineup counter for other cases */}
+        {!loading && lineups.length > 0 && lineups.length < MAX_FREE_LINEUPS - 1 && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+            You have {lineups.length} of {MAX_FREE_LINEUPS} lineups. {MAX_FREE_LINEUPS - lineups.length} remaining.
           </div>
         )}
 

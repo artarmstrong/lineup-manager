@@ -17,35 +17,41 @@ This document tracks the implementation progress for the Lineup Manager applicat
   - Disable form when limit is reached
   - Location: [src/pages/LineupForm.tsx](../src/pages/LineupForm.tsx)
 
-- [ ] **Player position restrictions UI - Pitcher**
+- [x] **Player position restrictions UI - Pitcher**
   - Add checkbox/flag for "Cannot play pitcher" in player form
   - Update UI in LineupForm to capture this restriction
+  - Checkbox displays below player input fields
   - Location: [src/pages/LineupForm.tsx](../src/pages/LineupForm.tsx)
 
-- [ ] **Player position restrictions UI - Catcher**
+- [x] **Player position restrictions UI - Catcher**
   - Add checkbox/flag for "Cannot play catcher" in player form
   - Update UI in LineupForm to capture this restriction
+  - Checkbox displays below player input fields
   - Location: [src/pages/LineupForm.tsx](../src/pages/LineupForm.tsx)
 
-- [ ] **Update Player type for position restrictions**
-  - Add `cannotPitcher?: boolean` field to Player type
-  - Add `cannotCatcher?: boolean` field to Player type
+- [x] **Update Player type for position restrictions**
+  - Add `cannotPitch?: boolean` field to Player type
+  - Add `cannotCatch?: boolean` field to Player type
+  - Updated `updatePlayer` function to accept boolean values
   - Location: [src/types/lineup.types.ts](../src/types/lineup.types.ts)
 
-- [ ] **Update rotation algorithm - Pitcher restrictions**
-  - Modify algorithm to respect `cannotPitcher` flag
+- [x] **Update rotation algorithm - Pitcher restrictions**
+  - Modify algorithm to respect `cannotPitch` flag
   - Ensure only eligible players are assigned to pitcher position
+  - Players with `cannotPitch=true` are skipped when assigning 'P' position
   - Location: [src/utils/rotationGenerator.ts](../src/utils/rotationGenerator.ts)
 
-- [ ] **Update rotation algorithm - Catcher restrictions**
-  - Modify algorithm to respect `cannotCatcher` flag
+- [x] **Update rotation algorithm - Catcher restrictions**
+  - Modify algorithm to respect `cannotCatch` flag
   - Ensure only eligible players are assigned to catcher position
+  - Players with `cannotCatch=true` are skipped when assigning 'C' position
   - Location: [src/utils/rotationGenerator.ts](../src/utils/rotationGenerator.ts)
 
-- [ ] **Validation for pitcher/catcher settings**
+- [x] **Validation for pitcher/catcher settings**
   - Ensure if `usePitcher=true`, at least one player can pitch
   - Ensure if `useCatcher=true`, at least one player can catch
   - Display validation error if settings are incompatible with player restrictions
+  - Clear error messages guide users to fix the issue
   - Location: [src/pages/LineupForm.tsx](../src/pages/LineupForm.tsx)
 
 ### UX Improvements
@@ -68,9 +74,12 @@ This document tracks the implementation progress for the Lineup Manager applicat
   - Handle network errors gracefully
   - Locations: All pages with data operations
 
-- [ ] **Display lineup count on Lineups page**
+- [x] **Display lineup count on Lineups page**
   - Show "X of 5 lineups used" counter
   - Update counter after creation/deletion
+  - Warning notification when user has 4 lineups (1 remaining)
+  - Error notification when user has reached 5 lineup limit
+  - Info notification showing remaining lineups (0-3 lineups)
   - Location: [src/pages/Lineups.tsx](../src/pages/Lineups.tsx)
 
 ### Testing
