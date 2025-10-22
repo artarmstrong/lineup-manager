@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import UserAvatar from '../components/UserAvatar';
@@ -6,6 +6,8 @@ import { supabase } from '../lib/supabase';
 import type { Sport, Player, LineupData, RotationSettings } from '../types/lineup.types';
 import { POSITION_NAMES } from '../types/lineup.types';
 import { generateRotation, getAvailablePositions } from '../utils/rotationGenerator';
+
+const MAX_FREE_LINEUPS = 5;
 
 export default function LineupForm() {
   const { user, signOut } = useAuth();
@@ -16,11 +18,41 @@ export default function LineupForm() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lineupCount, setLineupCount] = useState<number | null>(null);
+  const [checkingLimit, setCheckingLimit] = useState(true);
 
   // Rotation settings
   const [numberOfInnings, setNumberOfInnings] = useState<number>(6);
   const [usePitcher, setUsePitcher] = useState<boolean>(true);
   const [useCatcher, setUseCatcher] = useState<boolean>(true);
+
+  // Check lineup count on mount
+  useEffect(() => {
+    const checkLineupLimit = async () => {
+      if (!user) return;
+
+      try {
+        const { count, error: countError } = await supabase
+          .from('lineups')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+
+        if (countError) throw countError;
+
+        setLineupCount(count || 0);
+
+        if (count !== null && count >= MAX_FREE_LINEUPS) {
+          setError(`You have reached the maximum of ${MAX_FREE_LINEUPS} lineups for the free tier. Please delete an existing lineup to create a new one.`);
+        }
+      } catch (err) {
+        console.error('Error checking lineup count:', err);
+      } finally {
+        setCheckingLimit(false);
+      }
+    };
+
+    checkLineupLimit();
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -79,6 +111,12 @@ export default function LineupForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
+
+    // Check lineup limit
+    if (lineupCount !== null && lineupCount >= MAX_FREE_LINEUPS) {
+      setError(`You have reached the maximum of ${MAX_FREE_LINEUPS} lineups for the free tier. Please delete an existing lineup to create a new one.`);
+      return;
+    }
 
     // Validation
     if (!name.trim()) {
@@ -194,6 +232,18 @@ export default function LineupForm() {
             Create New Lineup
           </h2>
 
+          {checkingLimit && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-4">
+              Checking lineup limit...
+            </div>
+          )}
+
+          {!checkingLimit && lineupCount !== null && lineupCount < MAX_FREE_LINEUPS && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4">
+              You have {lineupCount} of {MAX_FREE_LINEUPS} lineups. {MAX_FREE_LINEUPS - lineupCount} remaining.
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
               {error}
@@ -212,7 +262,8 @@ export default function LineupForm() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  disabled={lineupCount !== null && lineupCount >= MAX_FREE_LINEUPS}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
                   placeholder="e.g., Starting 9, Practice Squad"
                   required
                 />
@@ -227,7 +278,8 @@ export default function LineupForm() {
                   id="sport"
                   value={sport}
                   onChange={(e) => setSport(e.target.value as Sport)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  disabled={lineupCount !== null && lineupCount >= MAX_FREE_LINEUPS}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-100"
                 >
                   <option value="baseball">Baseball</option>
                   <option value="softball">Softball</option>
@@ -243,7 +295,8 @@ export default function LineupForm() {
                   <button
                     type="button"
                     onClick={addPlayer}
-                    className="px-3 py-1 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors"
+                    disabled={lineupCount !== null && lineupCount >= MAX_FREE_LINEUPS}
+                    className="px-3 py-1 bg-indigo-600 text-white rounded text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     + Add Player
                   </button>
@@ -397,10 +450,10 @@ export default function LineupForm() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || checkingLimit || (lineupCount !== null && lineupCount >= MAX_FREE_LINEUPS)}
                   className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-md font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving ? 'Saving...' : 'Create Lineup'}
+                  {saving ? 'Saving...' : checkingLimit ? 'Checking...' : 'Create Lineup'}
                 </button>
                 <Link
                   to="/lineups"

@@ -20,6 +20,10 @@ The database schema is saved and updated in the database-schema.md file located 
 ## Randomized Lineup Rules
 
 These are the rules to follow when creating a randomized lineup:
+
+- Rules apply to each game separately. They do not carry over from one game to another.
+- Note that when you create each lineup, you can choose to rotate position players every one, two or three innings, and rotate pitchers on the same cycle or on a different cycle.
+- If you choose to rotate positions every two or three innings, the rules apply to each rotation, not each inning. For example, if you choose to rotate position players every two innings, then players will stay in their positions and on the bench for two innings at a time.
 - A player will not stay in the same position for two consecutive rotations.
 - A player will not repeat the same position later in the game unless no other players are eligible to play that position.
 - No player will be put on the bench a second time until all other players have been on the bench once. Same for any additional rotations to the bench.
